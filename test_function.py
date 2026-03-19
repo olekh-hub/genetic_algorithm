@@ -19,6 +19,15 @@ ELITE_SIZE = 2
 K = 3
 
 def rosenbrock(n_dims: list) -> float:
+    """
+    Calculates the Rosenbrock function value for N dimensions.
+    
+    Args:
+        n_dims (list): List of real-valued coordinates.
+        
+    Returns:
+        float: The fitness value (lower is better).
+    """
     f_x = 0
     for i in range(0, len(n_dims) - 1):
         x_i = n_dims[i]
@@ -28,6 +37,17 @@ def rosenbrock(n_dims: list) -> float:
 
     
 def binary_to_decimal(b_list: list, a: float, b: float) -> float:
+    """
+    Decodes a binary list into a real number within range [a, b].
+    
+    Args:
+        b_list (list): Binary list (chromosome segment).
+        a (float): Lower bound.
+        b (float): Upper bound.
+        
+    Returns:
+        float: Decoded real value.
+    """
     d, p = 0, 0 
     for bit in reversed(b_list):
         if bit == 1:
@@ -41,7 +61,9 @@ def binary_to_decimal(b_list: list, a: float, b: float) -> float:
 
 
 def get_rosenbrock(chromosome: list, a: float, b: float, n_dims: int, n_bits: int) -> float:
-    
+    """
+    Decodes entire chromosome and returns its Rosenbrock fitness.
+    """
     decoded_values = []
 
     for i in range(n_dims):
@@ -58,6 +80,12 @@ def get_rosenbrock(chromosome: list, a: float, b: float, n_dims: int, n_bits: in
 
 
 def initiate_population(n_dims: int, n_bits: int, size: int) -> pd.DataFrame:
+    """
+    Generates an initial random population.
+    
+    Returns:
+        pd.DataFrame: DataFrame with 'chromosome' column containing lists of bits.
+    """
     length = n_dims * n_bits
     data = []
     
@@ -68,15 +96,19 @@ def initiate_population(n_dims: int, n_bits: int, size: int) -> pd.DataFrame:
     return pd.DataFrame(data)
     
 def evaluate_population(population: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculates fitness for each individual in the population DataFrame.
+    """
     population['fitness'] = population['chromosome'].apply(lambda x: get_rosenbrock(x, A, B, N_DIMS, N_BITS))
 
     return population
 
 def best_method(population: pd.DataFrame, n_best: int) -> pd.DataFrame:
-
+    """Selects the N best individuals based on fitness (minimization)."""
     return population.sort_values(by='fitness').head(n_best)
 
 def roulette_method(population: pd.DataFrame, n_best: int) -> pd.DataFrame:
+    """Probabilistic selection using the Roulette Wheel method (minimization scale)."""
     worst_fitness = population['fitness'].max()
 
     population['prob'] = (worst_fitness - population['fitness'])
@@ -87,6 +119,7 @@ def roulette_method(population: pd.DataFrame, n_best: int) -> pd.DataFrame:
     return population.loc[selected].reset_index(drop=True)
 
 def tournament_method(population: pd.DataFrame, n_best: int, k: int) -> pd.DataFrame:
+    """Selects winners of k-sized random tournaments."""
 
     selected = []
 
@@ -100,6 +133,7 @@ def tournament_method(population: pd.DataFrame, n_best: int, k: int) -> pd.DataF
     return selected_df
 
 def single_crossover(first: list, second: list) -> list:
+    """Performs single-point crossover between two parent chromosomes."""
     ix = np.random.randint(0, len(first))
 
     child = first[0: ix] + second[ix:]
@@ -113,6 +147,7 @@ def two_point_crossover(first: list, second: list) -> list:
 
 
 def single_mutation(chromosome: list) -> list:
+    """Flips one random bit in the chromosome."""
     ix = np.random.randint(0, len(chromosome))
 
     chromosome[ix] = abs(chromosome[ix] - 1)
@@ -120,6 +155,7 @@ def single_mutation(chromosome: list) -> list:
     return chromosome
 
 def double_mutation(chromosome: list) -> list:
+    """Flips two distinct random bits."""
     ix = np.random.choice(len(chromosome), size=2, replace=False)
 
     for i in ix:
@@ -128,6 +164,7 @@ def double_mutation(chromosome: list) -> list:
     return chromosome
 
 def edge_mutation(chromosome: list) -> list:
+    """Flips either the first or the last bit."""
     ix = np.random.choice([0, len(chromosome) -1])
 
     chromosome[ix] = abs(chromosome[ix] - 1)
@@ -135,6 +172,7 @@ def edge_mutation(chromosome: list) -> list:
     return chromosome
 
 def inversion(chromosome: list) -> list:
+    """Inverts a random segment of the chromosome."""
     first_ix = np.random.randint(0, len(chromosome) - 1)
     second_ix = np.random.randint(first_ix, len(chromosome) - 1)
 
@@ -158,6 +196,16 @@ def plot_results(fitness_history: pd.DataFrame):
 
 
 def algorithm(selection_method: str, mutation_method: str):
+    """
+    Main evolutionary loop. 
+    
+    Args:
+        selection_method (str): 'best', 'roulette', or 'tournament'.
+        mutation_method (str): 'single', 'double', or 'edge'.
+        
+    Returns:
+        pd.DataFrame: The final generation evaluated.
+    """
     current_population_df = initiate_population(N_DIMS, N_BITS, size=POPULATION_SIZE)
     fitness_history = []
     for ep in range(EPOCHS):
