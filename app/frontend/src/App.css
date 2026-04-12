@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-accent: var(--_accent, #10b981);
+  --color-accent-foreground: var(--_accent-fg, #022c22);
+}
+
+:root {
+  --_accent: #10b981;
+  --_accent-fg: #022c22;
+  --_accent-dim: rgba(16, 185, 129, 0.08);
+  --_accent-glow: rgba(16, 185, 129, 0.15);
+}
+
+[data-variant="real"] {
+  --_accent: #e07a3a;
+  --_accent-fg: #2a1508;
+  --_accent-dim: rgba(224, 122, 58, 0.08);
+  --_accent-glow: rgba(224, 122, 58, 0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #151518;
+  color: #d4d4d4;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+.js-plotly-plot .plotly .modebar { display: none !important; }
