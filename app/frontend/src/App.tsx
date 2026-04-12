@@ -73,7 +73,7 @@ export default function App() {
   }
 
   return (
-    <div className="grid grid-cols-[340px_1fr] h-screen">
+    <div className="grid grid-cols-[360px_1fr] h-screen">
       <Sidebar
         variant={variant} methods={methods} isRunning={isRunning} hasResults={!!result}
         bounds={bounds} x1Range={x1Range} x2Range={x2Range}
@@ -82,7 +82,7 @@ export default function App() {
         onBoundsChange={handleBoundsChange} onViewRangeChange={handleViewRangeChange}
         progress={progress}
       />
-      <main className="overflow-y-auto p-5 space-y-4 bg-[#1a1a1e]">
+      <main className="overflow-y-auto p-6 space-y-5 bg-[#17171a]">
         <SurfacePlot
           data={surfaceData} variant={variant} bounds={bounds}
           bestPoint={bestPoint} convergencePath={convergencePath}
@@ -95,7 +95,7 @@ export default function App() {
         {result ? (
           <Results result={result} maximize={maximize} />
         ) : (
-          <div className="text-[14px] text-[#555] py-14 text-center">
+          <div className="text-[14px] text-[#555] py-16 text-center rounded-xl border border-dashed border-[#2a2a2e]">
             Run the algorithm to see results.
           </div>
         )}

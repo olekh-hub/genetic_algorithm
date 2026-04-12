@@ -28,7 +28,7 @@ function rosenbrock(x: number, y: number) {
 
 function makeLayout(eye: Vec3) {
   return {
-    paper_bgcolor: '#18181b', plot_bgcolor: '#18181b',
+    paper_bgcolor: '#1a1a1d', plot_bgcolor: '#1a1a1d',
     margin: { l: 0, r: 0, t: 8, b: 8 },
     scene: {
       xaxis: { title: 'x\u2081', color: '#52525b', gridcolor: '#252528', backgroundcolor: '#151518' },
@@ -295,41 +295,41 @@ export default function SurfacePlot({
 
   return (
     <div
-      className={`rounded border bg-[#18181b] overflow-hidden outline-none transition-colors ${focused ? 'border-[#444]' : 'border-[#222]'}`}
+      className={`rounded-xl border bg-[#1a1a1d] overflow-hidden outline-none transition-all ${focused ? 'border-[var(--_accent)] ring-1 ring-[var(--_accent-soft)]' : 'border-[#252528]'}`}
       tabIndex={0} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     >
-      <div className="flex items-center justify-between px-4 pt-3 text-[13px]">
-        <span className="text-[#666]">Rosenbrock surface</span>
-        <div className="flex items-center gap-3 font-mono text-[12px]">
-          {populationHistory && <span className="text-[#888]">epoch {epoch + 1}/{totalEpochs}</span>}
-          {currentBestFit !== null && <span className="text-[#aaa]">best {currentBestFit.toFixed(6)}</span>}
+      <div className="flex items-center justify-between px-5 pt-4 text-[14px]">
+        <span className="text-[#888]">Rosenbrock surface</span>
+        <div className="flex items-center gap-3 font-mono text-[13px]">
+          {populationHistory && <span className="text-[#999]">epoch {epoch + 1}/{totalEpochs}</span>}
+          {currentBestFit !== null && <span style={{ color: 'var(--_accent)' }}>best {currentBestFit.toFixed(6)}</span>}
           <span className="text-[#555]">[{bounds.a}, {bounds.b}]</span>
         </div>
       </div>
 
       <div ref={plotEl} className="w-full h-[520px]" />
 
-      <div className="px-4 pb-2.5 space-y-1.5">
+      <div className="px-5 pb-3.5 space-y-2">
         {populationHistory && totalEpochs > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button type="button" onClick={() => {
               if (isLastEpoch && !playing) { setEpoch(0); setPlaying(true); }
               else setPlaying(p => !p);
             }}
-              className="w-8 h-8 rounded border border-[#333] bg-[#1e1e22] text-[#aaa] flex items-center justify-center hover:bg-[#252528] transition-colors cursor-pointer text-[14px]">
+              className="w-9 h-9 rounded-lg border border-[#333] bg-[#1c1c20] text-[#bbb] flex items-center justify-center hover:bg-[#252528] hover:border-[var(--_accent)] transition-all cursor-pointer text-[15px]">
               {playing ? '\u23F8' : '\u25B6'}
             </button>
             <input type="range" min={0} max={totalEpochs - 1} value={epoch}
               onChange={e => { setEpoch(Number(e.target.value)); setPlaying(false); }}
-              className="flex-1 h-1 accent-[#888] cursor-pointer" />
+              className="flex-1 h-1.5 accent-[var(--_accent)] cursor-pointer" />
             <button type="button" onClick={() => setSpeedIdx(i => (i + 1) % SPEEDS.length)}
-              className="px-2 h-8 rounded border border-[#333] bg-[#1e1e22] text-[#666] text-[12px] font-mono hover:bg-[#252528] transition-colors cursor-pointer min-w-[44px]">
+              className="px-2.5 h-9 rounded-lg border border-[#333] bg-[#1c1c20] text-[#888] text-[13px] font-mono hover:bg-[#252528] hover:border-[var(--_accent)] transition-all cursor-pointer min-w-[48px]">
               {SPEEDS[speedIdx]}x
             </button>
-            <span className="text-[12px] text-[#555] font-mono">{populationHistory[epoch]?.pos.length ?? 0}p</span>
+            <span className="text-[13px] text-[#555] font-mono">{populationHistory[epoch]?.pos.length ?? 0}p</span>
           </div>
         )}
-        <div className="text-[11px] font-mono text-[#444]">
+        <div className="text-[12px] font-mono text-[#444]">
           {focused ? 'wasd orbit · qe zoom · scroll · drag' : 'click to focus'}
         </div>
       </div>

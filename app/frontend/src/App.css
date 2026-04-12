@@ -8,30 +8,32 @@
 }
 
 :root {
-  --_accent: #10b981;
+  --_accent: #34d399;
   --_accent-fg: #022c22;
-  --_accent-dim: rgba(16, 185, 129, 0.08);
-  --_accent-glow: rgba(16, 185, 129, 0.15);
+  --_accent-dim: rgba(52, 211, 153, 0.1);
+  --_accent-glow: rgba(52, 211, 153, 0.2);
+  --_accent-soft: rgba(52, 211, 153, 0.15);
 }
 
 [data-variant="real"] {
-  --_accent: #e07a3a;
-  --_accent-fg: #2a1508;
-  --_accent-dim: rgba(224, 122, 58, 0.08);
-  --_accent-glow: rgba(224, 122, 58, 0.15);
+  --_accent: #fb923c;
+  --_accent-fg: #431407;
+  --_accent-dim: rgba(251, 146, 60, 0.1);
+  --_accent-glow: rgba(251, 146, 60, 0.2);
+  --_accent-soft: rgba(251, 146, 60, 0.15);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #151518;
+  background: #111113;
   color: #d4d4d4;
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #2a2a2e; border-radius: 4px; }
 
 .js-plotly-plot .plotly .modebar { display: none !important; }
