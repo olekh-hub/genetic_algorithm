@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genetic Algorithm — Rosenbrock</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0b14;
+      --surface: #12121f;
+      --card: #181830;
+      --border: #262645;
+      --text: #e4e4f0;
+      --muted: #7b7b9e;
+      --accent: #7c5cfc;
+      --accent-hover: #9b7dff;
+      --green: #34d399;
+      --green-dim: rgba(52,211,153,0.12);
+      --red: #f87171;
+      --pink: #f472b6;
+      --blue: #60a5fa;
+      --amber: #fbbf24;
+      --radius: 10px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+
+    /* -- scrollbar --------------------------------------------------------- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* -- sidebar ----------------------------------------------------------- */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 22px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--pink));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: white;
+    }
+
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .brand span {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      font-size: 12.5px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .field input, .field select {
+      width: 128px;
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+
+    .field select {
+      font-family: var(--font);
+      font-weight: 500;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237b7b9e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    .field select option { background: var(--card); }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .checkbox-field label {
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, var(--accent), #6344e0);
+      color: white;
+      letter-spacing: 0.02em;
+    }
+    .btn-run:hover { background: linear-gradient(135deg, var(--accent-hover), var(--accent)); }
+    .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-save {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      margin-top: 4px;
+    }
+    .btn-save:hover { color: var(--text); border-color: var(--muted); }
+
+    .progress-track {
+      width: 100%; height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    /* -- main -------------------------------------------------------------- */
+    .main {
+      padding: 28px 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .surface-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .surface-header {
+      padding: 14px 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .surface-header h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .surface-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: var(--green-dim);
+      color: var(--green);
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    #surface-plot { width: 100%; height: 380px; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .stat-value.time { color: var(--blue); }
+    .stat-value.mode { color: var(--pink); font-family: var(--font); font-size: 14px; }
+    .stat-value.epochs-val { color: var(--amber); }
+    .stat-value.vars {
+      font-size: 12.5px;
+      color: var(--text);
+      word-break: break-all;
+      line-height: 1.6;
+    }
+    .stat-value .tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag-stopped { background: rgba(251,191,36,0.15); color: var(--amber); }
+    .tag-saved { background: var(--green-dim); color: var(--green); }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .chart-card h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      gap: 8px;
+    }
+
+    .placeholder-icon {
+      font-size: 28px;
+      opacity: 0.5;
+    }
+
+    .early-stop-fields {
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .early-stop-fields.visible { display: block; }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">GA</div>
+      <div>
+        <h1>Genetic Algorithm</h1>
+        <span>Rosenbrock Function</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Function & Bounds</div>
+      <div class="field">
+        <label>Lower Bound (a)</label>
+        <input type="number" id="a" value="-2.048" step="any" onchange="updateSurface()">
+      </div>
+      <div class="field">
+        <label>Upper Bound (b)</label>
+        <input type="number" id="b" value="2.048" step="any" onchange="updateSurface()">
+      </div>
+      <div class="field">
+        <label>Dimensions</label>
+        <input type="number" id="n_dims" value="2" min="2" step="1">
+      </div>
+      <div class="field">
+        <label>Bits per Variable</label>
+        <input type="number" id="n_bits" value="50" min="4" step="1">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Population & Epochs</div>
+      <div class="field">
+        <label>Population Size</label>
+        <input type="number" id="pop_size" value="100" min="4" step="1">
+      </div>
+      <div class="field">
+        <label>Max Epochs</label>
+        <input type="number" id="epochs" value="200" min="1" step="1">
+      </div>
+      <div class="field">
+        <label>Selection Count</label>
+        <input type="number" id="n_best" value="20" min="2" step="1">
+      </div>
+      <div class="field">
+        <label>Elite Size</label>
+        <input type="number" id="elite_size" value="2" min="0" step="1">
+      </div>
+      <div class="field">
+        <label>Tournament K</label>
+        <input type="number" id="k" value="3" min="2" step="1">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Probabilities</div>
+      <div class="field">
+        <label>Crossover</label>
+        <input type="number" id="crossover_prob" value="0.9" min="0" max="1" step="0.01">
+      </div>
+      <div class="field">
+        <label>Mutation</label>
+        <input type="number" id="mutation_prob" value="0.1" min="0" max="1" step="0.01">
+      </div>
+      <div class="field">
+        <label>Inversion</label>
+        <input type="number" id="inversion_prob" value="0.1" min="0" max="1" step="0.01">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Methods</div>
+      <div class="field">
+        <label>Selection</label>
+        <select id="selection">
+          <option value="best">Best</option>
+          <option value="roulette">Roulette</option>
+          <option value="tournament">Tournament</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Crossover</label>
+        <select id="crossover">
+          {% for m in crossover_methods %}
+          <option value="{{ m }}">{{ m.replace('_', ' ').title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Mutation</label>
+        <select id="mutation">
+          {% for m in mutation_methods %}
+          <option value="{{ m }}">{{ m.replace('_', ' ').title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="checkbox-field">
+        <input type="checkbox" id="maximize">
+        <label for="maximize">Maximize (instead of minimize)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Early Stopping</div>
+      <div class="checkbox-field" style="margin-top:0">
+        <input type="checkbox" id="early_stop" onchange="toggleEarlyStop()">
+        <label for="early_stop">Enable Early Stopping</label>
+      </div>
+      <div class="early-stop-fields" id="early-stop-fields">
+        <div class="field">
+          <label>Patience</label>
+          <input type="number" id="patience" value="20" min="1" step="1">
+        </div>
+        <div class="field">
+          <label>Min Delta</label>
+          <input type="number" id="min_delta" value="0.000001" step="any">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-run" id="btn-run" onclick="runAlgorithm()">Run Algorithm</button>
+    <button class="btn btn-save" id="btn-save" onclick="downloadCsv()">Download Last CSV</button>
+
+    <div class="progress-track" id="progress-track">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="surface-card">
+      <div class="surface-header">
+        <h3>Rosenbrock Surface (2D Slice)</h3>
+        <span class="surface-badge" id="bounds-badge">a = −2.048, b = 2.048</span>
+      </div>
+      <div id="surface-plot"></div>
+    </div>
+
+    <div class="section-title">Results</div>
+
+    <div id="placeholder" class="placeholder">
+      <div class="placeholder-icon">⚙</div>
+      <div>Configure parameters on the left and hit <strong>Run Algorithm</strong>.</div>
+      <div style="font-size:11px; color: var(--muted);">Results are auto-saved to <code>results/</code> on every run.</div>
+    </div>
+
+    <div id="results-section" style="display: none;">
+      <div class="results-grid">
+        <div class="stat-card">
+          <div class="stat-label">Best Fitness</div>
+          <div class="stat-value" id="stat-fitness">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Elapsed Time</div>
+          <div class="stat-value time" id="stat-time">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Mode</div>
+          <div class="stat-value mode" id="stat-mode">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Epochs Run</div>
+          <div class="stat-value epochs-val" id="stat-epochs">—</div>
+        </div>
+        <div class="stat-card" style="grid-column: 1 / -1;">
+          <div class="stat-label">Best Variables</div>
+          <div class="stat-value vars" id="stat-vars">—</div>
+        </div>
+      </div>
+
+      <div class="charts-row" style="margin-top: 16px;">
+        <div class="chart-card">
+          <h3>Fitness Over Epochs</h3>
+          <canvas id="chart-fitness"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Standard Deviation Over Epochs</h3>
+          <canvas id="chart-std"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let fitnessChart = null;
+  let stdChart = null;
+  let hasResults = false;
+
+  const chartDefaults = {
+    responsive: true,
+    animation: { duration: 400 },
+    plugins: {
+      legend: { labels: { color: '#7b7b9e', font: { size: 11, family: 'Inter' } } }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Epoch', color: '#7b7b9e', font: { family: 'Inter', weight: 500 } },
+        ticks: { color: '#7b7b9e', font: { family: 'JetBrains Mono', size: 10 } },
+        grid: { color: 'rgba(38,38,69,0.6)' }
+      },
+      y: {
+        ticks: { color: '#7b7b9e', font: { family: 'JetBrains Mono', size: 10 } },
+        grid: { color: 'rgba(38,38,69,0.6)' }
+      }
+    }
+  };
+
+  // -- 3d surface plot --
+  async function updateSurface() {
+    const a = parseFloat(document.getElementById('a').value);
+    const b = parseFloat(document.getElementById('b').value);
+    document.getElementById('bounds-badge').textContent = `a = ${a}, b = ${b}`;
+
+    try {
+      const resp = await fetch('/surface', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a, b })
+      });
+      const data = await resp.json();
+      const trace = {
+        x: data.x, y: data.y, z: data.z,
+        type: 'surface',
+        colorscale: [
+          [0, '#181830'], [0.2, '#3b1f8e'], [0.4, '#7c5cfc'],
+          [0.6, '#60a5fa'], [0.8, '#34d399'], [1, '#fbbf24']
+        ],
+        contours: {
+          z: { show: true, usecolormap: true, highlightcolor: '#fff', project: { z: false } }
+        },
+        lighting: { ambient: 0.5, diffuse: 0.6, specular: 0.3 },
+      };
+      const layout = {
+        paper_bgcolor: '#181830',
+        plot_bgcolor: '#181830',
+        margin: { l: 0, r: 0, t: 10, b: 10 },
+        scene: {
+          xaxis: { title: 'x₁', color: '#7b7b9e', gridcolor: '#262645', backgroundcolor: '#12121f' },
+          yaxis: { title: 'x₂', color: '#7b7b9e', gridcolor: '#262645', backgroundcolor: '#12121f' },
+          zaxis: { title: 'f(x)', color: '#7b7b9e', gridcolor: '#262645', backgroundcolor: '#12121f' },
+          camera: { eye: { x: 1.5, y: 1.5, z: 0.8 } },
+        },
+        font: { family: 'Inter', color: '#7b7b9e' },
+      };
+      Plotly.react('surface-plot', [trace], layout, { displayModeBar: false, responsive: true });
+    } catch (e) {
+      console.error('surface update failed', e);
+    }
+  }
+
+  function toggleEarlyStop() {
+    const on = document.getElementById('early_stop').checked;
+    document.getElementById('early-stop-fields').classList.toggle('visible', on);
+  }
+
+  function collectParams() {
+    const ids = ['a','b','n_dims','n_bits','pop_size','epochs','n_best',
+                 'elite_size','k','crossover_prob','mutation_prob','inversion_prob'];
+    const params = {};
+    ids.forEach(id => { params[id] = document.getElementById(id).value; });
+    params.selection = document.getElementById('selection').value;
+    params.crossover = document.getElementById('crossover').value;
+    params.mutation = document.getElementById('mutation').value;
+    params.maximize = document.getElementById('maximize').checked;
+    params.early_stop = document.getElementById('early_stop').checked;
+    params.patience = document.getElementById('patience').value;
+    params.min_delta = document.getElementById('min_delta').value;
+    return params;
+  }
+
+  async function runAlgorithm() {
+    const btn = document.getElementById('btn-run');
+    const track = document.getElementById('progress-track');
+    const bar = document.getElementById('progress-bar');
+
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    track.style.display = 'block';
+    bar.style.width = '30%';
+
+    try {
+      const resp = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collectParams())
+      });
+      bar.style.width = '90%';
+      const data = await resp.json();
+
+      if (data.error) { alert('Error: ' + data.error); return; }
+
+      bar.style.width = '100%';
+      hasResults = true;
+      showResults(data);
+    } catch (e) {
+      alert('Request failed: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run Algorithm';
+      setTimeout(() => { track.style.display = 'none'; bar.style.width = '0%'; }, 600);
+    }
+  }
+
+  function showResults(data) {
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+
+    document.getElementById('stat-fitness').textContent = data.best_fitness.toFixed(8);
+    document.getElementById('stat-time').textContent = data.elapsed.toFixed(3) + ' s';
+
+    const maximize = document.getElementById('maximize').checked;
+    document.getElementById('stat-mode').textContent = maximize ? 'Maximization' : 'Minimization';
+
+    let epochsHtml = data.total_epochs + ' / ' + document.getElementById('epochs').value;
+    if (data.stopped_early) epochsHtml += '<span class="tag tag-stopped">Early Stopped</span>';
+    epochsHtml += '<span class="tag tag-saved">' + data.saved_as + '</span>';
+    document.getElementById('stat-epochs').innerHTML = epochsHtml;
+
+    document.getElementById('stat-vars').textContent =
+      data.best_variables.map(v => v.toFixed(6)).join(',  ');
+
+    const epochs = data.best_history.map((_, i) => i);
+
+    if (fitnessChart) fitnessChart.destroy();
+    fitnessChart = new Chart(document.getElementById('chart-fitness'), {
+      type: 'line',
+      data: {
+        labels: epochs,
+        datasets: [
+          {
+            label: 'Best', data: data.best_history,
+            borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.06)',
+            borderWidth: 2, pointRadius: 0, fill: true, tension: 0.2
+          },
+          {
+            label: 'Mean', data: data.mean_history,
+            borderColor: '#60a5fa', borderWidth: 1.5,
+            pointRadius: 0, borderDash: [4, 2], tension: 0.2
+          }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        scales: {
+          ...chartDefaults.scales,
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'Fitness', color: '#7b7b9e', font: { family: 'Inter', weight: 500 } } }
+        }
+      }
+    });
+
+    if (stdChart) stdChart.destroy();
+    stdChart = new Chart(document.getElementById('chart-std'), {
+      type: 'line',
+      data: {
+        labels: epochs,
+        datasets: [{
+          label: 'Std Dev', data: data.std_history,
+          borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.08)',
+          borderWidth: 2, pointRadius: 0, fill: true, tension: 0.2
+        }]
+      },
+      options: {
+        ...chartDefaults,
+        scales: {
+          ...chartDefaults.scales,
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'Std Deviation', color: '#7b7b9e', font: { family: 'Inter', weight: 500 } } }
+        }
+      }
+    });
+  }
+
+  function downloadCsv() {
+    if (!hasResults) { alert('Run the algorithm first.'); return; }
+    window.location.href = '/download';
+  }
+
+  // load surface on page load
+  updateSurface();
+</script>
+</body>
+</html>
