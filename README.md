@@ -8,7 +8,7 @@ uv monorepo with binary and real-valued GA variants, React frontend with 3D surf
 ./scripts/dev.sh
 ```
 
-Opens at `http://127.0.0.1:5000`.
+Opens at `http://127.0.0.1:5050`.
 
 Requires [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/).
 
@@ -23,8 +23,8 @@ uv run ga-app
 ## Development (hot reload)
 
 ```bash
-uv run ga-app                          # API on :5000
-cd app/frontend && npm run dev         # React on :5173 (proxies /api to Flask)
+uv run ga-app                          # API on :5050
+cd app/frontend && npm run dev         # React on :5173 (proxies /api to :5050)
 ```
 
 ## Structure

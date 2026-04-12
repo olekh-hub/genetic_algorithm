@@ -22,7 +22,7 @@ npm run build
 cd ../..
 
 # Start Flask (serves React build + API)
-echo "Starting at http://127.0.0.1:5000"
+echo "Starting at http://127.0.0.1:5050"
 echo "Press Ctrl+C to stop."
 uv run ga-app &
 FLASK_PID=$!
