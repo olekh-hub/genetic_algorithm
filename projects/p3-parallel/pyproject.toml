@@ -1,0 +1,17 @@
+[project]
+name = "p3-parallel"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["ga-core", "p1-binary", "p2-real"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/p3_parallel"]
+
+[tool.uv.sources]
+ga-core = { workspace = true }
+p1-binary = { workspace = true }
+p2-real = { workspace = true }
