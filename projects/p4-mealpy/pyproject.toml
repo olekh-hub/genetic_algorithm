@@ -1,0 +1,31 @@
+[project]
+name = "p4-mealpy"
+version = "0.1.0"
+description = "Project 4 — Particle Swarm Optimization with MealPy, benchmarks vs P1/P2"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "mealpy",
+    "ga-core",
+    "p1-binary",
+    "p2-real",
+]
+
+[project.scripts]
+p4-mealpy = "p4_mealpy.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/p4_mealpy"]
+
+[tool.uv.sources]
+ga-core = { workspace = true }
+p1-binary = { workspace = true }
+p2-real = { workspace = true }
