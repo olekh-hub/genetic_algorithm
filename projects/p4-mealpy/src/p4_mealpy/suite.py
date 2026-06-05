@@ -11,22 +11,17 @@ class ExperimentSuite:
             # Scenariusz 1: Standardowe parametry (Bazowy)
             ExperimentSpec(
                 name="S1_Standard_PSO", n_dims=self.dims, epochs=self.epochs, pop_size=50,
-                pso_params=PSOConfig(w=0.729, c1=2.05, c2=2.05)
+                pso_params=PSOConfig(w=0.75, c1=2.05, c2=2.05)
             ),
-            # Scenariusz 2: Wysoka eksploracja (Większa bezwładność, mniejsza składowa społeczna)
+            # Scenariusz 2: Wysoka eksploracja - zachowanie indywidualne
             ExperimentSpec(
                 name="S2_High_Exploration", n_dims=self.dims, epochs=self.epochs, pop_size=50,
-                pso_params=PSOConfig(w=1.2, c1=2.5, c2=0.5)
+                pso_params=PSOConfig(w=0.9, c1=2.5, c2=0.5)
             ),
-            # Scenariusz 3: Wysoka eksploatacja (Szybka zbieżność do lidera roju)
+            # Scenariusz 3: Wysoka eksploatacja - zachowanie stadne
             ExperimentSpec(
                 name="S3_High_Exploitation", n_dims=self.dims, epochs=self.epochs, pop_size=50,
                 pso_params=PSOConfig(w=0.4, c1=0.5, c2=2.8)
-            ),
-            # Scenariusz 4: Mała populacja (Wymagający test wydajnościowy)
-            ExperimentSpec(
-                name="S4_Small_Swarm", n_dims=self.dims, epochs=self.epochs, pop_size=15,
-                pso_params=PSOConfig(w=0.729, c1=2.05, c2=2.05)
             )
         ]
 
