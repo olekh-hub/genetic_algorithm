@@ -33,6 +33,6 @@ cd app/frontend && npm run dev         # React on :5173 (proxies /api to :5050)
 packages/ga-core/     shared: abstract GA base, config, registry, objective functions
 projects/p1-binary/   binary chromosome GA
 projects/p2-real/     real-valued chromosome GA
-projects/p3-parallel/ placeholder
+projects/p3-pyga/       PyGAD benchmarks vs P1/P2
 app/                  Flask API + React frontend
 ```
