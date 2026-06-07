@@ -28,13 +28,19 @@ class ExperimentSuite:
     def run_all(self) -> dict:
         scenarios = self.prepare_scenarios()
         results = {}
+        
+        print("Uruchamianie P1 Binary GA (5 razy)...")
+        p1_results = run_baseline_p1(n_dims=self.dims, epochs=self.epochs, pop_size=50, n_runs=5)
+        
+        print("Uruchamianie P2 Real GA (5 razy)...")
+        p2_results = run_baseline_p2(n_dims=self.dims, epochs=self.epochs, pop_size=50, n_runs=5)
 
         for spec in scenarios:
             print(f"Uruchamianie scenariusza: {spec.name}...")
             results[spec.name] = {
                 "spec": spec,
                 "p4_pso": run_mealpy_pso(spec),
-                "p1_binary": run_baseline_p1(spec) if spec.run_p1 else None,
-                "p2_real": run_baseline_p2(spec) if spec.run_p2 else None,
+                "p1_binary": p1_results,  
+                "p2_real": p2_results,    
             }
         return results

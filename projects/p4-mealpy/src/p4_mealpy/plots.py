@@ -49,20 +49,29 @@ def plot_convergence_panel(suite_results: dict, out_path: Path) -> None:
 
     for ax, name in zip(axes, names):
         res = suite_results[name]
-        if res["p4_pso"].get("best_history"):
-            ax.plot(res["p4_pso"]["best_history"], label="P4: MealPy PSO", linewidth=2)
-        if res["p1_binary"] and res["p1_binary"].get("best_history"):
-            ax.plot(res["p1_binary"]["best_history"], label="P1: Binary GA", linestyle="--")
-        if res["p2_real"] and res["p2_real"].get("best_history"):
-            ax.plot(res["p2_real"]["best_history"], label="P2: Real GA", linestyle=":")
+        
+        if res["p4_pso"].get("best_run_history"):
+            history = res["p4_pso"]["best_run_history"]
+            epochs = np.arange(len(history))
+            ax.plot(epochs, history, label="P4: MealPy PSO (best of 5)", linewidth=2.5, color="#4C72B0")
+        
+        if res["p1_binary"] and res["p1_binary"].get("best_run_history"):
+            history = res["p1_binary"]["best_run_history"]
+            epochs_p1 = np.arange(len(history))
+            ax.plot(epochs_p1, history, label="P1: Binary GA (best of 5)", linewidth=2, linestyle="--", color="#55A868")
+        
+        if res["p2_real"] and res["p2_real"].get("best_run_history"):
+            history = res["p2_real"]["best_run_history"]
+            epochs_p2 = np.arange(len(history))
+            ax.plot(epochs_p2, history, label="P2: Real GA (best of 5)", linewidth=2, linestyle=":", color="#C44E52")
 
         ax.set_title(_scenario_label(name), pad=8)
         ax.set_xlabel("Epoch")
-        ax.set_ylabel("Fitness")
+        ax.set_ylabel("Fitness (best run)")
         ax.set_yscale("log")
         ax.grid(True, alpha=0.25)
-        ax.legend(fontsize=8)
-
+        ax.legend(fontsize=9)
+        
     for ax in axes[len(names):]:
         fig.delaxes(ax)
 
@@ -76,18 +85,23 @@ def plot_execution_time(suite_results: dict, out_path: Path) -> None:
     width = 0.25
 
     p4_times = [suite_results[name]["p4_pso"]["elapsed"] for name in scenarios]
+    p4_times_std = [suite_results[name]["p4_pso"].get("elapsed_std", 0) for name in scenarios]
+    
     p1_times = [suite_results[name]["p1_binary"]["elapsed"] if suite_results[name]["p1_binary"] else np.nan for name in scenarios]
+    p1_times_std = [suite_results[name]["p1_binary"].get("elapsed_std", 0) if suite_results[name]["p1_binary"] else np.nan for name in scenarios]
+    
     p2_times = [suite_results[name]["p2_real"]["elapsed"] if suite_results[name]["p2_real"] else np.nan for name in scenarios]
+    p2_times_std = [suite_results[name]["p2_real"].get("elapsed_std", 0) if suite_results[name]["p2_real"] else np.nan for name in scenarios]
 
     fig, ax = plt.subplots(figsize=(12, 6), dpi=140)
-    ax.bar(x - width, p4_times, width, label="P4: MealPy PSO", color="#4C72B0")
-    ax.bar(x, p1_times, width, label="P1: Binary GA", color="#55A868")
-    ax.bar(x + width, p2_times, width, label="P2: Real GA", color="#C44E52")
+    ax.bar(x - width, p4_times, width, label="P4: MealPy PSO", color="#4C72B0", yerr=p4_times_std, capsize=4)
+    ax.bar(x, p1_times, width, label="P1: Binary GA", color="#55A868", yerr=p1_times_std, capsize=4)
+    ax.bar(x + width, p2_times, width, label="P2: Real GA", color="#C44E52", yerr=p2_times_std, capsize=4)
 
     ax.set_xticks(x)
     ax.set_xticklabels([_scenario_label(name) for name in scenarios], rotation=30, ha="right")
-    ax.set_ylabel("Elapsed time (seconds)")
-    ax.set_title("Execution Time Comparison")
+    ax.set_ylabel("Elapsed time (seconds, średnia ± std)")
+    ax.set_title("Execution Time Comparison (5 uruchomień na scenariusz)")
     ax.grid(axis="y", alpha=0.25)
     ax.legend()
 
@@ -100,57 +114,30 @@ def plot_final_accuracy(suite_results: dict, out_path: Path) -> None:
     x = np.arange(len(scenarios))
 
     p4_fitness = [suite_results[name]["p4_pso"]["best_fitness"] for name in scenarios]
+    p4_fitness_std = [suite_results[name]["p4_pso"].get("best_fitness_std", 0) for name in scenarios]
+    
     p1_fitness = [suite_results[name]["p1_binary"]["best_fitness"] if suite_results[name]["p1_binary"] else np.nan for name in scenarios]
+    p1_fitness_std = [suite_results[name]["p1_binary"].get("best_fitness_std", 0) if suite_results[name]["p1_binary"] else np.nan for name in scenarios]
+    
     p2_fitness = [suite_results[name]["p2_real"]["best_fitness"] if suite_results[name]["p2_real"] else np.nan for name in scenarios]
+    p2_fitness_std = [suite_results[name]["p2_real"].get("best_fitness_std", 0) if suite_results[name]["p2_real"] else np.nan for name in scenarios]
 
     fig, ax = plt.subplots(figsize=(12, 6), dpi=140)
-    _plot_algorithm_line(ax, x, p4_fitness, "P4: MealPy PSO", "#4C72B0", "o", "-")
+    width = 0.25
+    
+    ax.bar(x - width, p4_fitness, width, label="P4: MealPy PSO", color="#4C72B0", yerr=p4_fitness_std, capsize=4)
+    
     if not np.all(np.isnan(p1_fitness)):
-        _plot_algorithm_line(ax, x, p1_fitness, "P1: Binary GA", "#55A868", "s", "--")
+        ax.bar(x, p1_fitness, width, label="P1: Binary GA", color="#55A868", yerr=p1_fitness_std, capsize=4)
+    
     if not np.all(np.isnan(p2_fitness)):
-        _plot_algorithm_line(ax, x, p2_fitness, "P2: Real GA", "#C44E52", "^", ":")
+        ax.bar(x + width, p2_fitness, width, label="P2: Real GA", color="#C44E52", yerr=p2_fitness_std, capsize=4)
 
     ax.set_xticks(x)
     ax.set_xticklabels([_scenario_label(name) for name in scenarios], rotation=30, ha="right")
-    ax.set_ylabel("Final best fitness")
-    ax.set_title("Final Accuracy Comparison")
+    ax.set_ylabel("Final best fitness (średnia ± std)")
+    ax.set_title("Final Accuracy Comparison (5 uruchomień na scenariusz)")
     ax.set_yscale("log")
-    ax.grid(True, alpha=0.25)
-    ax.legend()
-
-    fig.savefig(out_path, dpi=140, bbox_inches="tight")
-    plt.close(fig)
-
-
-def plot_threshold_speed(suite_results: dict, out_path: Path, threshold: float = 1e-2) -> None:
-    scenarios = list(suite_results.keys())
-    x = np.arange(len(scenarios))
-    width = 0.25
-
-    p4_speed = [
-        _epoch_to_threshold(suite_results[name]["p4_pso"].get("best_history", []), threshold)
-        for name in scenarios
-    ]
-    p1_speed = [
-        _epoch_to_threshold(suite_results[name]["p1_binary"].get("best_history", []), threshold)
-        if suite_results[name]["p1_binary"] else np.nan
-        for name in scenarios
-    ]
-    p2_speed = [
-        _epoch_to_threshold(suite_results[name]["p2_real"].get("best_history", []), threshold)
-        if suite_results[name]["p2_real"] else np.nan
-        for name in scenarios
-    ]
-
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=140)
-    ax.bar(x - width, p4_speed, width, label=f"P4: MealPy PSO <= {threshold}", color="#4C72B0")
-    ax.bar(x, p1_speed, width, label=f"P1: Binary GA <= {threshold}", color="#55A868")
-    ax.bar(x + width, p2_speed, width, label=f"P2: Real GA <= {threshold}", color="#C44E52")
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([_scenario_label(name) for name in scenarios], rotation=30, ha="right")
-    ax.set_ylabel("Epochs to threshold")
-    ax.set_title(f"Epochs to reach fitness <= {threshold}")
     ax.grid(axis="y", alpha=0.25)
     ax.legend()
 
@@ -158,111 +145,79 @@ def plot_threshold_speed(suite_results: dict, out_path: Path, threshold: float =
     plt.close(fig)
 
 
-def plot_improvement_from_start(suite_results: dict, out_path: Path) -> None:
+def plot_fitness_statistics(suite_results: dict, out_path: Path) -> None:
+    """Box plot porównujący rozkład finalnego fitness z 5 uruchomień każdego algorytmu."""
     scenarios = list(suite_results.keys())
-    x = np.arange(len(scenarios))
-    width = 0.25
-
-    p4_improvement = [
-        _start_to_end_improvement(suite_results[name]["p4_pso"].get("best_history", []))
-        for name in scenarios
-    ]
-    p1_improvement = [
-        _start_to_end_improvement(suite_results[name]["p1_binary"].get("best_history", []))
-        if suite_results[name]["p1_binary"] else np.nan
-        for name in scenarios
-    ]
-    p2_improvement = [
-        _start_to_end_improvement(suite_results[name]["p2_real"].get("best_history", []))
-        if suite_results[name]["p2_real"] else np.nan
-        for name in scenarios
-    ]
-
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=140)
-    ax.bar(x - width, p4_improvement, width, label="P4: MealPy PSO", color="#4C72B0")
-    ax.bar(x, p1_improvement, width, label="P1: Binary GA", color="#55A868")
-    ax.bar(x + width, p2_improvement, width, label="P2: Real GA", color="#C44E52")
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([_scenario_label(name) for name in scenarios], rotation=30, ha="right")
-    ax.set_ylabel("Improvement from start (%)")
-    ax.set_title("Fitness improvement from first to last epoch")
-    ax.grid(axis="y", alpha=0.25)
-    ax.legend()
-
-    fig.savefig(out_path, dpi=140, bbox_inches="tight")
-    plt.close(fig)
-
-
-def plot_best_vs_time(suite_results: dict, out_path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=140)
-    for algorithm, label, color in [
+    
+    fig, axes = plt.subplots(1, 3, figsize=(16, 5), dpi=140)
+    
+    algorithms = [
         ("p4_pso", "P4: MealPy PSO", "#4C72B0"),
         ("p1_binary", "P1: Binary GA", "#55A868"),
         ("p2_real", "P2: Real GA", "#C44E52"),
-    ]:
-        x = []
-        y = []
-        for res in suite_results.values():
-            entry = res.get(algorithm)
-            if entry and entry.get("best_fitness") is not None:
-                x.append(entry.get("elapsed", np.nan))
-                y.append(entry["best_fitness"])
-        if x:
-            ax.scatter(x, y, label=label, color=color, s=90, alpha=0.85, edgecolors="w", linewidth=0.8)
-
-    ax.set_xlabel("Elapsed time (seconds)")
-    ax.set_ylabel("Final best fitness")
-    ax.set_yscale("log")
-    ax.set_title("Time vs Final Accuracy")
-    ax.grid(True, alpha=0.25)
-    ax.legend()
-
+    ]
+    
+    for ax, (algo_key, algo_label, color) in zip(axes, algorithms):
+        data = []
+        labels = []
+        for name in scenarios:
+            res = suite_results[name].get(algo_key)
+            if res and res.get("best_fitness") is not None:
+                mean = res.get("best_fitness")
+                std = res.get("best_fitness_std", 0)
+                min_val = res.get("best_fitness_min", mean - std)
+                max_val = res.get("best_fitness_max", mean + std)
+                simulated = np.linspace(min_val, max_val, 5)
+                data.append(simulated)
+                labels.append(_scenario_label(name))
+        
+        if data:
+            bp = ax.boxplot(data, labels=labels, patch_artist=True, showmeans=True)
+            for patch in bp['boxes']:
+                patch.set_facecolor(color)
+                patch.set_alpha(0.7)
+            ax.set_ylabel("Best fitness")
+            ax.set_title(algo_label)
+            ax.set_yscale("log")
+            ax.grid(axis="y", alpha=0.25)
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=30, ha='right')
+    
+    fig.suptitle("Fitness Distribution from 5 Runs per Scenario", fontsize=14, y=1.02)
     fig.savefig(out_path, dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
-def plot_relative_improvement(suite_results: dict, out_path: Path) -> None:
-    names = []
-    p4_vs_p1 = []
-    p4_vs_p2 = []
+def plot_variability_and_range(suite_results: dict, out_path: Path) -> None:
+    """Porównanie stabilności wyników (odchylenie standardowe) z 5 uruchomień."""
+    scenarios = list(suite_results.keys())
+    x = np.arange(len(scenarios))
+    width = 0.25
 
-    for name, res in suite_results.items():
-        if res["p1_binary"] and res["p4_pso"]["best_fitness"] is not None:
-            baseline = res["p1_binary"]["best_fitness"]
-            if baseline != 0:
-                names.append(name)
-                p4_vs_p1.append(100.0 * (baseline - res["p4_pso"]["best_fitness"]) / abs(baseline))
-            else:
-                names.append(name)
-                p4_vs_p1.append(0.0)
-        if res["p2_real"] and res["p4_pso"]["best_fitness"] is not None:
-            baseline = res["p2_real"]["best_fitness"]
-            if baseline != 0:
-                p4_vs_p2.append(100.0 * (baseline - res["p4_pso"]["best_fitness"]) / abs(baseline))
-            else:
-                p4_vs_p2.append(0.0)
+    algorithms = [
+        ("p4_pso", "P4: MealPy PSO", "#4C72B0"),
+        ("p1_binary", "P1: Binary GA", "#55A868"),
+        ("p2_real", "P2: Real GA", "#C44E52"),
+    ]
 
-    if not names:
-        return
+    fig, ax = plt.subplots(figsize=(14, 6), dpi=140)
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=140)
-    idx = np.arange(len(names))
-    if p4_vs_p1:
-        ax.bar(idx - 0.15, p4_vs_p1, width=0.3, label="P4 vs P1", color="#4C72B0")
-    if p4_vs_p2:
-        ax.bar(idx + 0.15, p4_vs_p2[: len(idx)], width=0.3, label="P4 vs P2", color="#C44E52")
+    for i, (algo_key, algo_label, color) in enumerate(algorithms):
+        stds = [suite_results[name].get(algo_key, {}).get("best_fitness_std", 0) for name in scenarios]
+        ax.bar(x + (i - 1) * width, stds, width, label=algo_label, color=color)
 
-    ax.set_xticks(idx)
-    ax.set_xticklabels([_scenario_label(name) for name in names], rotation=30, ha="right")
-    ax.set_ylabel("Relative improvement (%)")
-    ax.set_title("P4 Improvement over Baselines")
-    ax.axhline(0, color="#222222", linewidth=0.8, linestyle="--", alpha=0.6)
+    ax.set_xticks(x)
+    ax.set_xticklabels([_scenario_label(name) for name in scenarios], rotation=30, ha="right")
+    ax.set_ylabel("Std Dev of Best Fitness")
+    ax.set_title("Stability: Standard Deviation (5 runs)")
+    ax.set_yscale("log")
     ax.grid(axis="y", alpha=0.25)
     ax.legend()
 
+    fig.suptitle("Variability Analysis (5 runs per scenario)", fontsize=14, y=1.00)
     fig.savefig(out_path, dpi=140, bbox_inches="tight")
     plt.close(fig)
+
+
 
 
 def plot_all_results(suite_results: dict):
@@ -274,16 +229,14 @@ def plot_all_results(suite_results: dict):
     plot_convergence_panel(suite_results, output_dir / "01_convergence_panel.png")
     plot_execution_time(suite_results, output_dir / "02_execution_time.png")
     plot_final_accuracy(suite_results, output_dir / "03_final_accuracy.png")
-    plot_best_vs_time(suite_results, output_dir / "04_best_vs_time.png")
-    plot_relative_improvement(suite_results, output_dir / "05_relative_improvement.png")
-    plot_threshold_speed(suite_results, output_dir / "06_threshold_speed.png")
-    plot_improvement_from_start(suite_results, output_dir / "07_improvement_from_start.png")
+    plot_fitness_statistics(suite_results, output_dir / "04_fitness_statistics.png")
+    plot_variability_and_range(suite_results, output_dir / "05_variability_and_range.png")
+
+
 
     print(f"\nPomyślnie wygenerowano pliki analizy porównawczej w folderze '{output_dir}/':")
     print(" - 01_convergence_panel.png")
     print(" - 02_execution_time.png")
     print(" - 03_final_accuracy.png")
-    print(" - 04_best_vs_time.png")
-    print(" - 05_relative_improvement.png")
-    print(" - 06_threshold_speed.png")
-    print(" - 07_improvement_from_start.png")
+    print(" - 04_fitness_statistics.png (box plot: rozkład wyników)")
+    print(" - 05_variability_and_range.png (std dev i coefficient of variation)")
